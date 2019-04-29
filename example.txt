@@ -1,0 +1,10 @@
+# This is a commented line.
+# [QUESTION]:[ANSWER]
+
+What is 2+2?:2+2 = 4
+What is 999+1?:1000
+
+Bonjour:Hello
+Oui:Yes
+Non:No
+
