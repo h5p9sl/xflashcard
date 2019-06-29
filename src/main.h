@@ -5,8 +5,9 @@
 struct {
     int argc;
     char** argv;
-
+    int current_arg;
     bool reverse;
+    char* input;
 } program_arguments;
 
 struct CmdArgument {
