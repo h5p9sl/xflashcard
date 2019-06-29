@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
         parseArguments(argc, argv);
 
         struct FLASHCARD_CTX ctx;
-        loadFlashcardData(&ctx, argv[1]);
+        loadFlashcardData(&ctx, argv[argc - 1]);
 
         srand(time(NULL));
 
