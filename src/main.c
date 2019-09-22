@@ -41,8 +41,10 @@ void help_arg() {
     exit(0);
 }
 
-void parseArguments(int argc, char* argv[]) {
+// overflow is a char* array with a size of 'argc'. All indices initialized as NULL
+void parseArguments(int argc, char* argv[], char* overflow[], int* overflow_count) {
     bool arg_found = false;
+    *overflow_count = 0;
 
     for (int i = 0; i < argc; i++) {
         program_arguments.current_arg = i;
@@ -55,6 +57,9 @@ void parseArguments(int argc, char* argv[]) {
                 ((void(*)(void))argument->callback)();
             }
         }
+        if (!arg_found) {
+            overflow[(*overflow_count)++] = argv[i];
+        }
     }
 }
 
@@ -65,14 +70,20 @@ int main(int argc, char* argv[]) {
     program_arguments.input = (char*)NULL;
 
     if (argc >= 2) {
-        parseArguments(argc, argv);
+        int overflow_count;
+        char** overflow = (char**)malloc(argc * sizeof(char*));
+        memset(overflow, 0, (argc * sizeof(char*)));
+
+        parseArguments(argc, argv, overflow, &overflow_count);
         if (program_arguments.input == (char*)NULL) {
-            puts("--input argument not specified. Exiting...");
-            exit(0);
+            program_arguments.input = overflow[--overflow_count];
         }
+        free(overflow);
 
         struct FLASHCARD_CTX ctx;
-        loadFlashcardData(&ctx, program_arguments.input);
+        if (!loadFlashcardData(&ctx, program_arguments.input)) {
+            return -1;
+        }
 
         srand(time(NULL));
 
