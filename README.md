@@ -18,7 +18,7 @@ make clean all
 ```
 
 ### Windows
-Windows support is mediocre. You may run into unforseen issues.
+Windows support is mediocre. You may run into unforeseen issues.
 
 Please make sure you have the following software installed to your system:
 + [MinGW.org Compiler Collection (GCC)](https://osdn.net/projects/mingw/downloads/68260/mingw-get-setup.exe/)
