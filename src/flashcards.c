@@ -44,9 +44,23 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
     {
         for (size_t i = 0; i < lines_size; i++) {
             bool syntaxError = true;
+            bool escape = false;
+            size_t* escape_chars = (size_t*)NULL;
+            size_t escape_chars_size = (size_t)0;
             char* currentLine = lines[i];
+
             for (size_t j = 0; j < strlen(lines[i]); j++) {
-                if (currentLine[j] == ':') {
+                if (escape == true) {
+                    escape = false;
+                }
+                // If current character is an escape character...
+                else if (currentLine[j] == '\\') {
+                    escape = true;
+                    // Mark this escape character for deletion
+                    escape_chars = realloc(escape_chars, ++escape_chars_size * sizeof(size_t));
+                    escape_chars[escape_chars_size - 1] = j;
+                }
+                else if (currentLine[j] == ':') {
                     syntaxError = false;
                     currentLine[j] = '\0';
                     char* question = currentLine;
@@ -57,9 +71,22 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
                     ctx->questions = realloc(ctx->questions, ctx->num_questions * sizeof(char*));
                     ctx->answers = realloc(ctx->answers, ctx->num_questions * sizeof(char*));
                     // Create copies of strings and store them in the context
-                    char* question_cpy = (char*)malloc(strlen(question));
+                    char* question_cpy = (char*)malloc(strlen(question) - escape_chars_size);
                     char* answer_cpy = (char*)malloc(strlen(answer));
-                    strcpy(question_cpy, question);
+                    // Manually copy question to question_cpy
+                    // and ignore escape characters
+                    {
+                        size_t x = 0;
+                        for (size_t k = 0; k < strlen(question) + 1; k++) {
+                            bool f = false;
+                            for (size_t l = 0; l < escape_chars_size; l++) {
+                                if (k == escape_chars[l]) f = true;
+                            }
+                            if (f != true) {
+                                question_cpy[x++] = question[k];
+                            }
+                        }
+                    }
                     strcpy(answer_cpy, answer);
                     ctx->questions[ctx->num_questions - 1] = question_cpy;
                     ctx->answers[ctx->num_questions - 1] = answer_cpy;
