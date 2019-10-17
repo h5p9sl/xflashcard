@@ -29,6 +29,6 @@ xflashcard: ${OBJ}
 	${CC} ${LFLAGS} ${OBJ} -o ${OUT}
 
 clean:
-	rm ${OBJ}
-	rm ${OUT}
+	rm ${OBJ} -f
+	rm ${OUT} -f
 
