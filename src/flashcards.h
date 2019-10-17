@@ -3,7 +3,8 @@
 #include <stdbool.h>
 
 struct FLASHCARD_CTX {
-    int num_questions;
+    unsigned num_questions;
+    unsigned size_questions;
     char** questions;
     char** answers;
 };

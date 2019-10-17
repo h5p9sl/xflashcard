@@ -10,6 +10,7 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
 
     // Initialize context to default values
     ctx->num_questions = 0;
+    ctx->size_questions = 0;
     ctx->questions = NULL;
     ctx->answers = NULL;
 
@@ -68,8 +69,13 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
                     // Now we have our question and answer.
                     // Push back pointers to strings
                     ctx->num_questions++;
-                    ctx->questions = realloc(ctx->questions, ctx->num_questions * sizeof(char*));
-                    ctx->answers = realloc(ctx->answers, ctx->num_questions * sizeof(char*));
+                    if (ctx->num_questions > ctx->size_questions) {
+                        // We need to allocate more memory to store our pointers
+                        while (ctx->size_questions <= ctx->num_questions) ctx->size_questions += 8;
+                        ctx->questions = realloc(ctx->questions, ctx->size_questions * sizeof(char*));
+                        ctx->answers = realloc(ctx->answers, ctx->size_questions * sizeof(char*));
+                    }
+
                     // Create copies of strings and store them in the context
                     char* question_cpy = (char*)malloc(strlen(question) - escape_chars_size);
                     char* answer_cpy = (char*)malloc(strlen(answer));
