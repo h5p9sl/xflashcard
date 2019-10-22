@@ -8,12 +8,6 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
     char** lines = NULL;
     size_t lines_size = 0; 
 
-    // Initialize context to default values
-    ctx->num_questions = 0;
-    ctx->size_questions = 0;
-    ctx->questions = NULL;
-    ctx->answers = NULL;
-
     // Replace all newlines with null characters
     // And create an array of lines
     {
@@ -110,6 +104,7 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
 bool loadFlashcardData(struct FLASHCARD_CTX* ctx, const char* fileName) {
     FILE* file = fopen(fileName, "r");
     if (file == NULL) {
+        fprintf(stderr, "\"%s\": ", fileName);
         perror("fopen");
         return false;
     }
@@ -126,6 +121,9 @@ bool loadFlashcardData(struct FLASHCARD_CTX* ctx, const char* fileName) {
     fclose(file);
 
     // Parse file
-    return parseFile(ctx, (char*)buffer, size);
+    bool result = parseFile(ctx, (char*)buffer, size);
+
+    free(buffer);
+    return result;
 }
 

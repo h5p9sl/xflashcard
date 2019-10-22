@@ -9,26 +9,22 @@
 void reverse_arg();
 void help_arg();
 void input_arg();
+void debug_arg();
 
 static const struct CmdArgument args[] = {
     { "-h", "--help", "Displays list of arguments that can be passed into the program.", help_arg },
     { "-r", "--reverse", "Displays answers before questions. (ex. 1) \"204\", 2) \"What is 102*2?\").", reverse_arg },
-    { "-i", "--input", "Input flashcards file.", input_arg }
+    { "-d", "--debug", "Enables technical information output (Debug Mode).", debug_arg },
 };
 
 
 void print_usage() {
-    printf("Usage: %s [OPTIONS] <FILE>\n", program_arguments.argv[0]);
+    printf("Usage: %s [OPTIONS] <FILE(S)>\n", program_arguments.argv[0]);
 }
 
 void reverse_arg() {
     puts("Reverse mode enabled.");
     program_arguments.reverse = true;
-}
-
-void input_arg() {
-    program_arguments.input =
-        program_arguments.argv[program_arguments.current_arg + 1];
 }
 
 void help_arg() {
@@ -39,6 +35,11 @@ void help_arg() {
     }
 
     exit(0);
+}
+
+void debug_arg() {
+    debug = stdout;
+    DEBUG_PRINTF("Debug Mode is enabled.\n");
 }
 
 // overflow is a char* array with a size of 'argc'. All indices initialized as NULL
@@ -67,41 +68,41 @@ int main(int argc, char* argv[]) {
     program_arguments.argc = argc;
     program_arguments.argv = argv;
     program_arguments.reverse = false;
-    program_arguments.input = (char*)NULL;
+    program_arguments.input = (char**)malloc(argc * sizeof(char*));
 
     if (argc >= 2) {
         int overflow_count;
-        char** overflow = (char**)malloc(argc * sizeof(char*));
+        // Assume that the overflow arguments are input files
+        char** overflow = program_arguments.input;
         memset(overflow, 0, (argc * sizeof(char*)));
-
         parseArguments(argc, argv, overflow, &overflow_count);
-        if (program_arguments.input == (char*)NULL) {
-            program_arguments.input = overflow[--overflow_count];
-        }
-        free(overflow);
 
-        struct FLASHCARD_CTX ctx;
-        if (!loadFlashcardData(&ctx, program_arguments.input)) {
-            return -1;
+        struct FLASHCARD_CTX* ctx = (struct FLASHCARD_CTX*)malloc(sizeof(struct FLASHCARD_CTX));
+        memset(ctx, 0, sizeof(struct FLASHCARD_CTX));
+        for (int i = 1; i < overflow_count; i++) {
+            DEBUG_PRINTF("overflow[%i] = \"%s\"\n", i, overflow[i]);
+            loadFlashcardData(ctx, program_arguments.input[i]);
         }
 
         srand(time(NULL));
 
-        while (true) {
+        while (ctx->num_questions > 0) {
             int rng = rand();
-            int index = rng % ctx.num_questions;
+            int index = rng % ctx->num_questions;
             char c;
 
             if (program_arguments.reverse) {
-                printf("? %s\n... ", ctx.answers[index]);
+                printf("? %s\n... ", ctx->answers[index]);
                 while ((c = getchar()) != '\n' && c != EOF);
-                printf("%s\n\n", ctx.questions[index]);
+                printf("%s\n\n", ctx->questions[index]);
             } else {
-                printf("? %s\n... ", ctx.questions[index]);
+                printf("? %s\n... ", ctx->questions[index]);
                 while ((c = getchar()) != '\n' && c != EOF);
-                printf("%s\n\n", ctx.answers[index]);
+                printf("%s\n\n", ctx->answers[index]);
             }
         }
+        free(overflow);
+        free(ctx);
     }
     else {
         print_usage();

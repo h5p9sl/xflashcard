@@ -2,12 +2,16 @@
 #define _MAIN_C_
 #include <stdbool.h>
 
+#define DEBUG_PRINTF(s...) if (debug != (FILE*)NULL) fprintf(debug, s)
+
+FILE* debug = (FILE*)NULL;
+
 struct {
     int argc;
     char** argv;
     int current_arg;
     bool reverse;
-    char* input;
+    char** input;
 } program_arguments;
 
 struct CmdArgument {
