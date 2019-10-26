@@ -72,6 +72,20 @@ void pause() {
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
+void swap(int* a, int* b) {
+    int v_a, v_b;
+    // Swap the values of a and b
+    v_a = *a; v_b = *b;
+    *a = v_b;
+    *b = v_a;
+}
+
+void shuffleIntArray(int* array, unsigned len) {
+    for (int i = len - 1; i > 0; --i) {
+        swap(&array[i], &array[rand() % (i + 1)]);
+    }
+}
+
 int main(int argc, char* argv[]) {
     program_arguments.argc = argc;
     program_arguments.argv = argv;
@@ -92,23 +106,38 @@ int main(int argc, char* argv[]) {
             loadFlashcardData(ctx, program_arguments.input[i]);
         }
 
+        // Seed RNG
         srand(time(NULL));
 
+        // Create an array of indexes
+        //      We're going to use this array to define the order
+        //      that we're going to ask the questions
+        int* index = (int*)malloc(sizeof(int) * ctx->num_questions);
         while (ctx->num_questions > 0) {
-            int rng = rand();
-            int index = rng % ctx->num_questions;
-            char* qna[2] = { ctx->questions[index], ctx->answers[index] };
+            // Initialize data in index
+            for (int i = 0; i < ctx->num_questions; i++) {
+                index[i] = i;
+            }
 
-            // Clear the screen
-            CLEAR_SCREEN();
-            // Print question
-            printf("? %s\n... ", qna[(int)(program_arguments.reverse)]);
-            pause();
-            // Print answer
-            printf("%s\n\n", qna[(int)(!program_arguments.reverse)]);
-            pause();
+            shuffleIntArray(index, ctx->num_questions);
+
+            for (int a = 0; a < ctx->num_questions; a++) {
+                int i = index[a];
+                char* qna[2] = { ctx->questions[i], ctx->answers[i] };
+
+                // Clear the screen
+                CLEAR_SCREEN();
+                // Print question
+                printf("? %s\n... ", qna[(int)(program_arguments.reverse)]);
+                pause();
+                // Print answer
+                printf("%s\n\n", qna[(int)(!program_arguments.reverse)]);
+                pause();
+            }
         }
+
         free(overflow);
+        free(index);
         free(ctx);
     }
     else {
