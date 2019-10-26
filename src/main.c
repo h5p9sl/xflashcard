@@ -6,6 +6,9 @@
 #include "flashcards.h"
 #include "main.h"
 
+// May not work for all terminals...
+#define CLEAR_SCREEN() printf("\e[1;1H\e[2J")
+
 void reverse_arg();
 void help_arg();
 void input_arg();
@@ -64,6 +67,11 @@ void parseArguments(int argc, char* argv[], char* overflow[], int* overflow_coun
     }
 }
 
+void pause() {
+    char c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
 int main(int argc, char* argv[]) {
     program_arguments.argc = argc;
     program_arguments.argv = argv;
@@ -89,17 +97,16 @@ int main(int argc, char* argv[]) {
         while (ctx->num_questions > 0) {
             int rng = rand();
             int index = rng % ctx->num_questions;
-            char c;
+            char* qna[2] = { ctx->questions[index], ctx->answers[index] };
 
-            if (program_arguments.reverse) {
-                printf("? %s\n... ", ctx->answers[index]);
-                while ((c = getchar()) != '\n' && c != EOF);
-                printf("%s\n\n", ctx->questions[index]);
-            } else {
-                printf("? %s\n... ", ctx->questions[index]);
-                while ((c = getchar()) != '\n' && c != EOF);
-                printf("%s\n\n", ctx->answers[index]);
-            }
+            // Clear the screen
+            CLEAR_SCREEN();
+            // Print question
+            printf("? %s\n... ", qna[(int)(program_arguments.reverse)]);
+            pause();
+            // Print answer
+            printf("%s\n\n", qna[(int)(!program_arguments.reverse)]);
+            pause();
         }
         free(overflow);
         free(ctx);
