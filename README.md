@@ -2,7 +2,7 @@
 
 Xflashcard is a lightweight flashcard studying program.
 
-Please refer to [example.txt](https://github.com/h5p9sl/xflashcard/blob/424d7addc11f0d47022731e9e7247aaae03bae8d/flashcards/example.txt) for an example of how to create flashcard files.
+Please refer to [example.txt](https://github.com/h5p9sl/xflashcard/blob/master/flashcards/example.txt) for an example of how to create flashcard files.
 
 ## Building
 ### Linux
