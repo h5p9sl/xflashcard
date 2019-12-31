@@ -5,7 +5,7 @@
 #include <string.h>
 
 bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
-    char** lines = NULL;
+    char** lines;
     size_t lines_size = 0; 
 
     // Replace all newlines with null characters
@@ -98,6 +98,9 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
         }
     }
 
+    if (lines_size > 0) {
+        free(lines);
+    }
     return true;
 }
 
