@@ -65,7 +65,7 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
                     ctx->num_questions++;
                     if (ctx->num_questions > ctx->size_questions) {
                         // We need to allocate more memory to store our pointers
-                        while (ctx->size_questions <= ctx->num_questions) ctx->size_questions += 8;
+                        while (ctx->size_questions <= ctx->num_questions) ctx->size_questions += 32;
                         ctx->questions = realloc(ctx->questions, ctx->size_questions * sizeof(char*));
                         ctx->answers = realloc(ctx->answers, ctx->size_questions * sizeof(char*));
                     }
