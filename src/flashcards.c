@@ -5,7 +5,7 @@
 #include <string.h>
 
 bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
-    char** lines;
+    char** lines = NULL;
     size_t lines_size = 0; 
 
     // Replace all newlines with null characters
@@ -65,29 +65,27 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
                     ctx->num_questions++;
                     if (ctx->num_questions > ctx->size_questions) {
                         // We need to allocate more memory to store our pointers
-                        while (ctx->size_questions <= ctx->num_questions) ctx->size_questions += 32;
+                        while (ctx->size_questions <= ctx->num_questions) ctx->size_questions += 8;
                         ctx->questions = realloc(ctx->questions, ctx->size_questions * sizeof(char*));
                         ctx->answers = realloc(ctx->answers, ctx->size_questions * sizeof(char*));
                     }
 
                     // Create copies of strings and store them in the context
-                    char* question_cpy = (char*)malloc(strlen(question) - escape_chars_size);
-                    char* answer_cpy = (char*)malloc(strlen(answer));
-                    // Manually copy question to question_cpy
-                    // and ignore escape characters
+                    char* question_cpy = strdup(question);
+                    char* answer_cpy = strdup(answer);
+                    // Iterate through question_cpy and remove escape chars
                     {
-                        size_t x = 0;
-                        for (size_t k = 0; k < strlen(question) + 1; k++) {
-                            bool f = false;
+                        bool is_escape;
+                        size_t k, x = 0;
+                        for (k = 0; k < strlen(question); k++) {
+                            is_escape = false;
                             for (size_t l = 0; l < escape_chars_size; l++) {
-                                if (k == escape_chars[l]) f = true;
+                                if (k == escape_chars[l]) is_escape = true;
                             }
-                            if (f != true) {
-                                question_cpy[x++] = question[k];
-                            }
+                            if (is_escape == false) question_cpy[x++] = question[k];
                         }
+                        question_cpy[x] = '\0';
                     }
-                    strcpy(answer_cpy, answer);
                     ctx->questions[ctx->num_questions - 1] = question_cpy;
                     ctx->answers[ctx->num_questions - 1] = answer_cpy;
                 }
@@ -95,6 +93,8 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
             if (syntaxError) {
                 printf("Syntax error on definition #%li: \"%s\"\n", i, currentLine);
             }
+            // Don't forget to free memory!
+            free(escape_chars);
         }
     }
 
