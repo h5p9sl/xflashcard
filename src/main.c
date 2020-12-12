@@ -7,6 +7,9 @@
 #include "main.h"
 #include "arg.h"
 
+// extern struct defined in main.h 
+struct MAIN_H_PROGRAM_ARGUMENTS program_arguments;
+
 // May not work for all terminals...
 #define CLEAR_SCREEN() printf("\e[1;1H\e[2J")
 

@@ -5,61 +5,36 @@
 #include <string.h>
 
 bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
-    char** lines = NULL;
-    size_t lines_size = 0; 
+    char* line = strtok(fileData, "\n");
+    unsigned line_number = 1;
 
-    // Replace all newlines with null characters
-    // And create an array of lines
-    {
-        char* currentLine = fileData;
-        for (size_t i = 0; i < fileSize; i++) {
-            if (fileData[i] == '\n') {
-                fileData[i] = '\0';
-                // Check if the line is AT LEAST 3 characters long
-                // Check if the line is commented out
-                if ((fileData + i - currentLine >= 3) &&
-                    (*currentLine != '#')) {
-    
-                    // Push line onto array
-                    lines_size++;
-                    lines = realloc(lines, lines_size * sizeof(char*));
-                    if (lines == NULL) {
-                        puts("realloc(): OUT OF MEMORY");
-                    }
-                    lines[lines_size - 1] = currentLine;
-                }
-                // Set the current line pointer to the next line
-                currentLine = fileData + i + 1;
-            }
-        }
-    }
-
-    // Fill context struct with information
-    // (Seperate questions from answers)
-    {
-        for (size_t i = 0; i < lines_size; i++) {
+    while (line != NULL) {
+		// make sure line is at least 3 characters long
+        // the line is not commented out
+        if (strlen(line) >= 3 && line[0] != '#') {
+            // Fill context struct with information
+            // (Seperate questions from answers)
             bool syntaxError = true;
             bool escape = false;
             size_t* escape_chars = (size_t*)NULL;
             size_t escape_chars_size = (size_t)0;
-            char* currentLine = lines[i];
 
-            for (size_t j = 0; j < strlen(lines[i]); j++) {
+            for (size_t j = 0; j < strlen(line); j++) {
                 if (escape == true) {
                     escape = false;
                 }
                 // If current character is an escape character...
-                else if (currentLine[j] == '\\') {
+                else if (line[j] == '\\') {
                     escape = true;
                     // Mark this escape character for deletion
                     escape_chars = realloc(escape_chars, ++escape_chars_size * sizeof(size_t));
                     escape_chars[escape_chars_size - 1] = j;
                 }
-                else if (currentLine[j] == ':') {
+                else if (line[j] == ':') {
                     syntaxError = false;
-                    currentLine[j] = '\0';
-                    char* question = currentLine;
-                    char* answer = currentLine + j + 1;
+                    line[j] = '\0';
+                    char* question = line;
+                    char* answer = line + j + 1;
                     // Now we have our question and answer.
                     // Push back pointers to strings
                     ctx->num_questions++;
@@ -91,15 +66,14 @@ bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
                 }
             }
             if (syntaxError) {
-                printf("Syntax error on definition #%li: \"%s\"\n", i, currentLine);
+                printf("Syntax error on definition #%li: \"%s\"\n", line_number, line);
             }
             // Don't forget to free memory!
             free(escape_chars);
         }
-    }
 
-    if (lines_size > 0) {
-        free(lines);
+        line = strtok(NULL, "\n");
+        line_number += 1;
     }
     return true;
 }
