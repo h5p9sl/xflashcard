@@ -4,77 +4,64 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool parseFile(struct FLASHCARD_CTX* ctx, char* fileData, size_t fileSize) {
-    char* line = strtok(fileData, "\n");
+FlashcardEntry_t new_flashcard_entry(const char* question, const char* answer) {
+    FlashcardEntry_t entry;
+    entry.question = strdup(question);
+    entry.answer = strdup(answer);
+    return entry;
+}
+
+bool parseFile(struct FLASHCARD_CTX* ctx, const char* fileData, size_t fileSize) {
+    char* buf = strdup(fileData);
+    char* line = strtok(buf, "\n");
     unsigned line_number = 1;
 
     while (line != NULL) {
-		// make sure line is at least 3 characters long
-        // the line is not commented out
+        // make sure line is at least 3 characters long
+        // and the line is not commented out
         if (strlen(line) >= 3 && line[0] != '#') {
-            // Fill context struct with information
-            // (Seperate questions from answers)
-            bool syntaxError = true;
-            bool escape = false;
-            size_t* escape_chars = (size_t*)NULL;
-            size_t escape_chars_size = (size_t)0;
+            // make sure we have a seperator in our entry
+            if (strchr(line, ':') != NULL) {
+                int seperator_index = 0;
 
-            for (size_t j = 0; j < strlen(line); j++) {
-                if (escape == true) {
-                    escape = false;
-                }
-                // If current character is an escape character...
-                else if (line[j] == '\\') {
-                    escape = true;
-                    // Mark this escape character for deletion
-                    escape_chars = realloc(escape_chars, ++escape_chars_size * sizeof(size_t));
-                    escape_chars[escape_chars_size - 1] = j;
-                }
-                else if (line[j] == ':') {
-                    syntaxError = false;
-                    line[j] = '\0';
-                    char* question = line;
-                    char* answer = line + j + 1;
-                    // Now we have our question and answer.
-                    // Push back pointers to strings
-                    ctx->num_questions++;
-                    if (ctx->num_questions > ctx->size_questions) {
-                        // We need to allocate more memory to store our pointers
-                        while (ctx->size_questions <= ctx->num_questions) ctx->size_questions += 8;
-                        ctx->questions = realloc(ctx->questions, ctx->size_questions * sizeof(char*));
-                        ctx->answers = realloc(ctx->answers, ctx->size_questions * sizeof(char*));
+                for (int i = 0; i < strlen(line); i++) {
+                    switch (line[i]) {
+                        case '\\':
+                            // Remove escape character token from string
+                            strcpy(&line[i], &line[i + 1]);
+                            break;
+                        case ':':
+                            seperator_index = i;
+                            break;
                     }
+                }
 
-                    // Create copies of strings and store them in the context
-                    char* question_cpy = strdup(question);
-                    char* answer_cpy = strdup(answer);
-                    // Iterate through question_cpy and remove escape chars
-                    {
-                        bool is_escape;
-                        size_t k, x = 0;
-                        for (k = 0; k < strlen(question); k++) {
-                            is_escape = false;
-                            for (size_t l = 0; l < escape_chars_size; l++) {
-                                if (k == escape_chars[l]) is_escape = true;
-                            }
-                            if (is_escape == false) question_cpy[x++] = question[k];
-                        }
-                        question_cpy[x] = '\0';
+                if (seperator_index != 0) {
+                    char* seperator = &line[seperator_index];
+                    *seperator = '\0';
+
+                    FlashcardEntry_t entry = new_flashcard_entry(&line[0], seperator + 1);
+
+                    ctx->num_entries += 1;
+                    ctx->entries = reallocarray(ctx->entries, sizeof(entry), ctx->num_entries);
+                    if (ctx->entries == NULL) {
+                        perror("reallocarray");
+                    } else {
+                        ctx->entries[ctx->num_entries - 1] = entry;
                     }
-                    ctx->questions[ctx->num_questions - 1] = question_cpy;
-                    ctx->answers[ctx->num_questions - 1] = answer_cpy;
+                } else {
+                    printf("An unknown error has occured on definition #%u: \"%s\"\n: could not find seperator", line_number, line);
                 }
+            } else {
+                printf("Syntax error on definition #%u: \"%s\"\n", line_number, line);
             }
-            if (syntaxError) {
-                printf("Syntax error on definition #%li: \"%s\"\n", line_number, line);
-            }
-            // Don't forget to free memory!
-            free(escape_chars);
         }
 
         line = strtok(NULL, "\n");
         line_number += 1;
     }
+
+    free(buf);
     return true;
 }
 

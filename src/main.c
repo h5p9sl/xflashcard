@@ -35,13 +35,12 @@ void shuffleIntArray(int* array, unsigned len) {
 int main(int argc, char* argv[]) {
     int overflow_count;
     struct FLASHCARD_CTX* ctx;
-    {
-        program_arguments.argc = argc;
-        program_arguments.argv = argv;
-        program_arguments.debug = (FILE*)NULL;
-        program_arguments.reverse = false;
-        program_arguments.input = (char**)malloc(argc * sizeof(char*));
-    }
+
+    program_arguments.argc = argc;
+    program_arguments.argv = argv;
+    program_arguments.debug = (FILE*)NULL;
+    program_arguments.reverse = false;
+    program_arguments.input = (char**)malloc(argc * sizeof(char*));
 
     // Has user supplied insufficient arguments?
     if (argc < 2) {
@@ -56,7 +55,7 @@ int main(int argc, char* argv[]) {
 
     // Allocate memory for context
     ctx = (struct FLASHCARD_CTX*)malloc(sizeof(struct FLASHCARD_CTX));
-    memset(ctx, 0, sizeof(struct FLASHCARD_CTX));
+    bzero(ctx, sizeof(ctx));
 
     // Load flashcard(s)
     for (int i = 1; i < overflow_count; i++) {
@@ -70,19 +69,19 @@ int main(int argc, char* argv[]) {
     // Create an array of indexes
     //      We're going to use this array to define the order
     //      that we're going to ask the questions
-    int* index = (int*)malloc(sizeof(int) * ctx->num_questions);
+    int* index = (int*)malloc(sizeof(int) * ctx->num_entries);
 
     // 1) Check if we actually have any questions
     // 2) Loop infinitely, asking the user questions
-    while (ctx->num_questions > 0) {
+    while (ctx->num_entries > 0) {
         // Shuffle flashcards...
-        for (int i = 0; i < ctx->num_questions; i++) index[i] = i;
-        shuffleIntArray(index, ctx->num_questions);
+        for (int i = 0; i < ctx->num_entries; i++) index[i] = i;
+        shuffleIntArray(index, ctx->num_entries);
 
         // Iterate through shuffled flashcards
-        for (int a = 0; a < ctx->num_questions; a++) {
+        for (int a = 0; a < ctx->num_entries; a++) {
             int i = index[a];
-            char* qna[2] = { ctx->questions[i], ctx->answers[i] };
+            char* qna[2] = { ctx->entries[i].question, ctx->entries[i].answer };
 
             // Clear the screen
             CLEAR_SCREEN();

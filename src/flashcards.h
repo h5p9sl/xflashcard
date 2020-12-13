@@ -1,12 +1,16 @@
 #ifndef _FLASHCARDS_H_
 #define _FLASHCARDS_H_
 #include <stdbool.h>
+#include <stddef.h>
+
+typedef struct {
+    char* question;
+    char* answer;
+} FlashcardEntry_t;
 
 struct FLASHCARD_CTX {
-    unsigned num_questions;
-    unsigned size_questions;
-    char** questions;
-    char** answers;
+    size_t num_entries;
+    FlashcardEntry_t* entries;
 };
 
 /*
